@@ -688,7 +688,7 @@ async function checkoutLocalBranch(pr: GitHubPullRequest) {
   const depth = Math.max(pr.commits.totalCount, 20)
 
   await $`git fetch origin --depth=${depth} ${branch}`
-  await $`git checkout ${branch}`
+  await $`git checkout -f ${branch}`
 }
 
 async function checkoutForkBranch(pr: GitHubPullRequest) {
@@ -700,7 +700,7 @@ async function checkoutForkBranch(pr: GitHubPullRequest) {
 
   await $`git remote add fork https://github.com/${pr.headRepository.nameWithOwner}.git`
   await $`git fetch fork --depth=${depth} ${remoteBranch}`
-  await $`git checkout -b ${localBranch} fork/${remoteBranch}`
+  await $`git checkout -f -b ${localBranch} fork/${remoteBranch}`
 }
 
 function generateBranchName(type: "issue" | "pr") {
