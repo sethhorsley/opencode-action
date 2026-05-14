@@ -157,12 +157,40 @@ try {
     console.log("Share link:", `${useShareUrl()}/s/${shareId}`)
   }
 
+  // Debug: log context info
+  const context = useContext()
+  const payload = context.payload as IssueCommentEvent | PullRequestReviewCommentEvent
+  console.log("=== DEBUG: Context Info ===")
+  console.log(`  Event name: ${context.eventName}`)
+  console.log(`  Actor: ${context.actor}`)
+  console.log(`  Repo: ${context.repo.owner}/${context.repo.repo}`)
+  console.log(`  Issue/PR number: ${useIssueId()}`)
+  console.log(`  Comment author: ${payload.comment.user?.login}`)
+  console.log(`  Comment ID: ${payload.comment.id}`)
+  console.log(`  Is PR comment: ${isPullRequest()}`)
+  console.log("===========================")
+
   // Handle 3 cases
   // 1. Issue
   // 2. Local PR
   // 3. Fork PR
   if (isPullRequest()) {
     const prData = await fetchPR()
+    console.log("=== DEBUG: PR Info ===")
+    console.log(`  PR number: #${useIssueId()}`)
+    console.log(`  PR title: ${prData.title}`)
+    console.log(`  Head branch: ${prData.headRefName}`)
+    console.log(`  Base branch: ${prData.baseRefName}`)
+    console.log(`  Head SHA: ${prData.headRefOid}`)
+    console.log(`  Author: ${prData.author.login}`)
+    console.log(`  State: ${prData.state}`)
+    console.log(`  Commits: ${prData.commits.totalCount}`)
+    console.log(`  Changed files: ${prData.files.nodes.length}`)
+    console.log(`  Is local PR: ${prData.headRepository.nameWithOwner === prData.baseRepository.nameWithOwner}`)
+    console.log(`  Head repo: ${prData.headRepository.nameWithOwner}`)
+    console.log(`  Base repo: ${prData.baseRepository.nameWithOwner}`)
+    console.log("=======================")
+
     // Local PR
     if (prData.headRepository.nameWithOwner === prData.baseRepository.nameWithOwner) {
       await checkoutLocalBranch(prData)
@@ -190,8 +218,17 @@ try {
   }
   // Issue
   else {
+    console.log("=== DEBUG: Issue Info ===")
+    console.log(`  Issue number: #${useIssueId()}`)
+    console.log("===========================")
+
     const branch = await checkoutNewBranch()
     const issueData = await fetchIssue()
+    console.log(`  Issue title: ${issueData.title}`)
+    console.log(`  Issue author: ${issueData.author.login}`)
+    console.log(`  Issue state: ${issueData.state}`)
+    console.log("===========================")
+
     const dataPrompt = buildPromptDataForIssue(issueData)
     const response = await chat(`${userPrompt}\n\n${dataPrompt}`, promptFiles)
     if (await branchIsDirty()) {
